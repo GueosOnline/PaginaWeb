@@ -2,8 +2,6 @@
 
 require 'config/config.php';
 require_once 'config/database.php';
-require 'vendor/autoload.php';
-
 
 $db = new Database();
 $con = $db->conectar();

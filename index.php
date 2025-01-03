@@ -1,94 +1,85 @@
 <?php
+// Inicializamos la base de datos
 require 'config/config.php';
 
 $db = new Database();
 $con = $db->conectar();
 
-
+// Recibimos los parámetros de filtrado
 $idCategoria = $_GET['cat'] ?? '';
-$idSubcategoria = $_GET['subcategoria'] ?? '';  // Subcategoria seleccionada
-$idSubsubcategoria = $_GET['subsubcategoria'] ?? '';  // Sub-subcategoria seleccionada
-
+$idSubcategoria = $_GET['subcategoria'] ?? '';
+$idSubsubcategoria = $_GET['subsubcategoria'] ?? '';
 $orden = $_GET['orden'] ?? '';
 $buscar = $_GET['q'] ?? '';
 
+// Opciones de orden
 $orders = [
     'asc' => 'nombre ASC',
     'desc' => 'nombre DESC',
     'precio_alto' => 'precio DESC',
     'precio_bajo' => 'precio ASC',
 ];
-
 $order = $orders[$orden] ?? '';
+
+// Preparamos la consulta SQL
+$sql = "SELECT id, slug, nombre, precio FROM productos WHERE activo = 1";
 $params = [];
 
-//Consulta para filtrar productos
-$sql = "SELECT id, slug, nombre, precio FROM productos WHERE activo=1";
-
+// Filtro de búsqueda
 if (!empty($buscar)) {
     $sql .= " AND (nombre LIKE ? OR descripcion LIKE ?)";
     $params[] = "%$buscar%";
     $params[] = "%$buscar%";
 }
 
+// Filtro de categoría, subcategoría y sub-subcategoría
+if (!empty($idCategoria)) {
+    $subcategorias = getSubcategorias($con, $idCategoria);
+    if (!empty($subcategorias)) {
+        $sql .= " AND id_categoria IN (" . implode(',', $subcategorias) . ")";
+    }
+}
+
+if (!empty($idSubcategoria)) {
+    $subsubcategorias = getSubcategorias($con, $idSubcategoria);
+    if (!empty($subsubcategorias)) {
+        $sql .= " AND id_categoria IN (" . implode(',', $subsubcategorias) . ")";
+    } else {
+        $sql .= " AND id_categoria = :subcategoria";
+        $params[':subcategoria'] = $idSubcategoria;
+    }
+}
+
+if (!empty($idSubsubcategoria)) {
+    $sql .= " AND id_categoria = :subsubcategoria";
+    $params[':subsubcategoria'] = $idSubsubcategoria;
+}
+
+// Filtro de orden
 if (!empty($order)) {
     $sql .= " ORDER BY $order";
 }
 
-if (!empty($idCategoria)) {
-    // Obtener todas las subcategorías de la categoría seleccionada
-    $subcategorias = getSubcategorias($con, $idCategoria);
-
-    // Si tenemos subcategorías, agregamos al filtro
-    if (!empty($subcategorias)) {
-        $sql .= " AND id_categoria IN (" . implode(',', $subcategorias) . ")";
-    }
-}
-
-// Si se ha seleccionado una subcategoría
-if (!empty($idSubsubcategoria)) {
-    // Filtrar solo por la sub-subcategoría específica (id_categoria)
-    $sql .= " AND id_categoria = :subsubcategoria";
-    $params[':subsubcategoria'] = $idSubsubcategoria;  // Asignar el id de la sub-subcategoría seleccionada
-} elseif (!empty($idSubcategoria)) {
-    // Si se seleccionó solo una subcategoría, puedes obtener las sub-subcategorías de esta
-    $subsubcategorias = getSubcategorias($con, $idSubcategoria);  // Asegúrate de que esta función obtenga sub-subcategorías correctamente
-
-    if (!empty($subsubcategorias)) {
-        // Si tiene sub-subcategorías, filtra por esas
-        $sql .= " AND id_categoria IN (" . implode(',', $subsubcategorias) . ")";
-    } else {
-        // Si NO tiene sub-subcategorías, solo filtra por la subcategoría
-        $sql .= " AND id_categoria = :subcategoria";
-        $params[':subcategoria'] = $idSubcategoria;  // Asignar el id de la subcategoría seleccionada
-    }
-} elseif (!empty($idCategoria)) {
-    // Si solo se seleccionó una categoría, filtra por esa categoría
-    $subcategorias = getSubcategorias($con, $idCategoria);  // Asegúrate de que esta función obtenga subcategorías correctamente
-    if (!empty($subcategorias)) {
-        // Filtra por las subcategorías correspondientes
-        $sql .= " AND id_categoria IN (" . implode(',', $subcategorias) . ")";
-    }
-}
+// Ejecutamos la consulta
 $query = $con->prepare($sql);
 $query->execute($params);
 $resultado = $query->fetchAll(PDO::FETCH_ASSOC);
 $totalRegistros = count($resultado);
 
+// Aquí vamos a cargar las categorías y subcategorías (sin cambios)
 $categoriaSql = $con->prepare("SELECT id, nombre, id_padre FROM categorias WHERE activo=1");
 $categoriaSql->execute();
 $categorias = $categoriaSql->fetchAll(PDO::FETCH_ASSOC);
 
+// Aquí asignamos las subcategorías a las categorías principales
 $categoriasArray = [];
 foreach ($categorias as $categoria) {
     if ($categoria['id_padre'] === NULL) {
-        // Es una categoría principal
         $categoriasArray[$categoria['id']] = [
             'nombre' => $categoria['nombre'],
             'subcategorias' => []
         ];
     } else {
-        // Es una subcategoría, la agregamos a su categoría principal
         if (isset($categoriasArray[$categoria['id_padre']])) {
             $categoriasArray[$categoria['id_padre']]['subcategorias'][] = [
                 'nombre' => $categoria['nombre'],
@@ -102,12 +93,11 @@ foreach ($categorias as $categoria) {
 // Obtener subsubcategorías
 foreach ($categorias as $categoria) {
     if ($categoria['id_padre'] !== NULL) {
-        $parentId = $categoria['id_padre']; // Padre de la subcategoría
+        $parentId = $categoria['id_padre'];
         $subsubcategoriaSql = $con->prepare("SELECT id, nombre FROM categorias WHERE id_padre = ? AND activo = 1");
         $subsubcategoriaSql->execute([$categoria['id']]);
         $subsubcategorias = $subsubcategoriaSql->fetchAll(PDO::FETCH_ASSOC);
 
-        // Añadir subsubcategorías a su correspondiente subcategoría
         foreach ($categoriasArray as $key => &$parentCategoria) {
             foreach ($parentCategoria['subcategorias'] as &$subcategoria) {
                 if ($subcategoria['id'] == $categoria['id']) {
@@ -118,39 +108,24 @@ foreach ($categorias as $categoria) {
     }
 }
 
+// Función para obtener subcategorías (sin cambios)
 function getSubcategorias($con, $idCategoria)
 {
-    // Inicializar el arreglo para almacenar las subcategorías
     $subcategorias = [];
-
-    // Consultar las subcategorías de la categoría proporcionada
     $sql = "SELECT id FROM categorias WHERE id_padre = ? AND activo = 1";
     $stmt = $con->prepare($sql);
     $stmt->execute([$idCategoria]);
     $subcategorias = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-    // Recursivamente obtener subcategorías de cada subcategoría
     foreach ($subcategorias as $subcategoria) {
-        // Obtener las sub-subcategorías de esta subcategoría
         $subsubcategorias = getSubcategorias($con, $subcategoria);
-        // Agregar las sub-subcategorías al arreglo
         $subcategorias = array_merge($subcategorias, $subsubcategorias);
     }
 
     return $subcategorias;
 }
-
-function getAllSubcategorias($con)
-{
-    $subcategorias = [];
-    $sql = "SELECT id FROM categorias WHERE activo = 1";
-    $stmt = $con->prepare($sql);
-    $stmt->execute();
-    $subcategorias = $stmt->fetchAll(PDO::FETCH_COLUMN);
-
-    return $subcategorias;
-}
 ?>
+
 
 <!DOCTYPE html>
 <html lang="es" class="h-100">
@@ -178,42 +153,74 @@ function getAllSubcategorias($con)
                 <div class="col-12 col-md-3 col-lg-3">
                     <div class="card shadow-sm">
                         <div class="card-header">
-                            Filtrar por Categoría
+                            Filtros
                         </div>
                         <div class="card-body">
                             <!-- Filtro de categoría -->
                             <form method="get" action="index.php">
+                                <!-- Filtro de Categoría -->
                                 <div class="mb-3">
                                     <label for="categoria" class="form-label">Categoría</label>
                                     <select class="form-select" id="categoria" name="cat" onchange="actualizarSubcategorias()">
                                         <option value="">Selecciona una categoría</option>
                                         <?php foreach ($categoriasArray as $categoriaId => $categoria) { ?>
-                                            <option value="<?php echo $categoriaId; ?>" <?php echo ($categoriaId === $idCategoria) ? 'selected' : ''; ?>>
+                                            <option value="<?php echo $categoriaId; ?>" <?php echo ($categoriaId == $idCategoria) ? 'selected' : ''; ?>>
                                                 <?php echo $categoria['nombre']; ?>
                                             </option>
                                         <?php } ?>
                                     </select>
                                 </div>
 
+                                <!-- Filtro de Subcategoría -->
                                 <div class="mb-3" id="subcategoria-container">
                                     <label for="subcategoria" class="form-label">Subcategoría</label>
                                     <select class="form-select" id="subcategoria" name="subcategoria" onchange="actualizarSubsubcategorias()">
                                         <option value="">Selecciona una subcategoría</option>
+                                        <?php foreach ($categoriasArray[$idCategoria]['subcategorias'] ?? [] as $subcategoria) { ?>
+                                            <option value="<?php echo $subcategoria['id']; ?>" <?php echo ($subcategoria['id'] == $idSubcategoria) ? 'selected' : ''; ?>>
+                                                <?php echo $subcategoria['nombre']; ?>
+                                            </option>
+                                        <?php } ?>
                                     </select>
                                 </div>
 
+                                <!-- Filtro de Sub-subcategoría -->
                                 <div class="mb-3" id="subsubcategoria-container">
                                     <label for="subsubcategoria" class="form-label">Sub-subcategoría</label>
                                     <select class="form-select" id="subsubcategoria" name="subsubcategoria">
                                         <option value="">Selecciona una sub-subcategoría</option>
+                                        <?php if (!empty($subsubcategorias)) { ?>
+                                            <?php foreach ($subsubcategorias as $subsubcategoria) { ?>
+                                                <option value="<?php echo $subsubcategoria['id']; ?>" <?php echo ($subsubcategoria['id'] == $idSubsubcategoria) ? 'selected' : ''; ?>>
+                                                    <?php echo $subsubcategoria['nombre']; ?>
+                                                </option>
+                                            <?php } ?>
+                                        <?php } ?>
                                     </select>
                                 </div>
 
-                                <button type="submit" class="btn btn-primary">Filtrar</button>
-                                <a href="index.php" class="btn btn-primary">Quitar filtro</a>
+                                <!-- Filtro de Búsqueda -->
+                                <div class="mb-3">
+                                    <label for="search" class="form-label">Buscar</label>
+                                    <input type="text" name="q" class="form-control" placeholder="Buscar..." aria-describedby="icon-buscar" value="<?php echo htmlspecialchars($buscar); ?>">
+                                </div>
+
+                                <!-- Botón de Aplicar Filtros -->
+
+                                <label for="cbx-orden" class="form-label">Ordena por</label>
+                                <select class="form-select d-inline-block w-auto pt-1 form-select-sm" name="orden" id="orden">
+                                    <option value="vacio" <?php echo (empty($orden)) ? 'selected' : ''; ?>></option>
+                                    <option value="precio_alto" <?php echo ($orden === 'precio_alto') ? 'selected' : ''; ?>>Precios más altos</option>
+                                    <option value="precio_bajo" <?php echo ($orden === 'precio_bajo') ? 'selected' : ''; ?>>Precios más bajos</option>
+                                    <option value="asc" <?php echo ($orden === 'asc') ? 'selected' : ''; ?>>Nombre A-Z</option>
+                                    <option value="desc" <?php echo ($orden === 'desc') ? 'selected' : ''; ?>>Nombre Z-A</option>
+                                </select>
+                                <div class="d-flex justify-content-between mt-3">
+                                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                                    <a href="index.php" class="btn btn-secondary ms-auto">Borrar filtros</a>
+                                </div>
                             </form>
 
-                            <?php echo $sql; ?>
                         </div>
                     </div>
                 </div>
@@ -221,33 +228,10 @@ function getAllSubcategorias($con)
                 <div class="col-12 col-md-9 col-lg-9">
                     <header class="d-sm-flex align-items-center border-bottom mb-4 pb-3">
                         <strong class="d-block py-2"><?php echo $totalRegistros; ?> Artículos encontrados </strong>
-                        <div class="ms-auto">
-                            <form method="get" action="index.php" autocomplete="off">
-                                <div class="input-group pe-3">
-                                    <input type="text" name="q" class="form-control" placeholder="Buscar..." aria-describedby="icon-buscar">
-                                    <button class="btn btn-outline-info" type="submit" id="icon-buscar">
-                                        <i class="fas fa-search"></i>
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-
-                        <div class="ms-auto">
-
-                            <form action="index.php" id="ordenForm" method="get" onchange="submitForm()">
-                                <input type="hidden" id="cat" name="cat" value="<?php echo $idCategoria; ?>">
-                                <label for="cbx-orden" class="form-label">Ordena por</label>
-
-                                <select class="form-select d-inline-block w-auto pt-1 form-select-sm" name="orden" id="orden">
-                                    <option value="precio_alto" <?php echo ($orden === 'precio_alto') ? 'selected' : ''; ?>>Pecios más altos</option>
-                                    <option value="precio_bajo" <?php echo ($orden === 'precio_bajo') ? 'selected' : ''; ?>>Pecios más bajos</option>
-                                    <option value="asc" <?php echo ($orden === 'asc') ? 'selected' : ''; ?>>Nombre A-Z</option>
-                                    <option value="desc" <?php echo ($orden === 'desc') ? 'selected' : ''; ?>>Nombre Z-A</option>
-                                </select>
-                            </form>
-                        </div>
                     </header>
-
+                    <div class="row">
+                        <!--Poner aca el filtro que se puso-->
+                    </div>
                     <div class="row">
                         <?php foreach ($resultado as $row) { ?>
                             <div class="col-lg-4 col-md-6 col-sm-6 d-flex">
