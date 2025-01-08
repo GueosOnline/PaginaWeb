@@ -44,9 +44,180 @@ if ($idTransaccion != '') {
                 }
             }
 
+            #--------------------------------------------------------------------
+            # Envio de correo Electronico por la compra
+            #--------------------------------------------------------------------
+
+
             $asunto = "Detalles de su pedido - Tienda online";
-            $cuerpo = "<h4>Gracias por su compra</h4>";
-            $cuerpo .= '<p>El ID de su compra es: <b>' . $idTransaccion . '</b></p>';
+
+            $cuerpo = "";
+            $cuerpo .= '<!DOCTYPE html>
+            <html lang="es">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body {
+                        font-family: Arial, sans-serif;
+                        margin: 0;
+                        padding: 0;
+                        background-color: #f9f9f9;
+                    }
+            
+                    .container {
+                        width: 100%;
+                        max-width: 600px;
+                        margin: 0 auto;
+                        background-color: #ffffff;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    }
+            
+                    .header {
+                        text-align: center;
+                        padding: 20px 0;
+                    }
+            
+                    .header img {
+                        max-width: 200px;
+                    }
+            
+                    .content {
+                        margin-top: 20px;
+                        font-size: 16px;
+                        color: #333;
+                    }
+            
+                    .content h4 {
+                        font-size: 22px;
+                        color: #333;
+                        text-align: center; 
+                    }
+            
+                    .content p {
+                        color: #555;
+                        font-size: 16px;
+                        line-height: 1.6;
+                    }
+            
+                    .content .order-id {
+                        font-weight: bold;
+                        color: #333;
+                    }
+            
+                    .footer {
+                        text-align: center;
+                        margin-top: 30px;
+                        font-size: 14px;
+                        color: #888;
+                    }
+            
+                    .footer p {
+                        margin: 5px 0;
+                    }
+            
+                    .custom-hr {
+                        border: 0;
+                        border-top: 2px solid #333;
+                        margin: 20px 0;
+                    }
+            
+                    /* Estilos para la tabla del pedido */
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-top: 20px;
+                    }
+            
+                    table th, table td {
+                        padding: 8px;
+                        text-align: left;
+                        border-bottom: 1px solid #ddd;
+                    }
+            
+                    table th {
+                        background-color: #f2f2f2;
+                        font-weight: bold;
+                    }
+            
+                    /* Estilos para dispositivos móviles */
+                    @media screen and (max-width: 600px) {
+                        .container {
+                            padding: 15px;
+                        }
+            
+                        .header img {
+                            max-width: 150px;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <!-- Logo -->
+                    <div class="header">
+                    
+                        <img src="https://es.digitaltrends.com/wp-content/uploads/2023/12/google-chrome.jpeg?resize=1000%2C600&p=1" alt="Logo de la Tienda">
+                    </div>
+            
+                    <!-- Línea divisoria -->
+                    <hr class="custom-hr">
+            
+                    <!-- Contenido principal -->
+                    <div class="content">
+                        <h4 style="text-center">¡Gracias por tu compra!</h4>
+                        <p>Queremos agradecerte por realizar tu compra en <strong>Representacionnes Gueos</strong>.</p>
+                        <p>El ID de tu compra es: <span class="order-id">' . $idTransaccion . '</span></p>
+                        <p>Tu pedido está siendo procesado y recibirás una notificación cuando se haya enviado.</p>
+                        <p>Detalles de la compra:</p>
+            
+                        <!-- Detalles del pedido -->
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cantidad</th>
+                                    <th>Producto</th>
+                                    <th>Importe</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
+
+            // Recorrer los productos del carrito
+            if (isset($_SESSION['carrito']['productos'])) {
+                $productos = $_SESSION['carrito']['productos'];
+                foreach ($productos as $clave => $cantidad) {
+                    $sqlProd = $con->prepare("SELECT nombre, precio FROM productos WHERE id=? AND activo=1");
+                    $sqlProd->execute([$clave]);
+                    $row_prod = $sqlProd->fetch(PDO::FETCH_ASSOC);
+
+                    $importe = $cantidad * $row_prod['precio'];
+                    $cuerpo .= '<tr>
+                                        <td>' . $cantidad . '</td>
+                                        <td>' . $row_prod['nombre'] . '</td>
+                                        <td>$' . number_format($importe, 2) . '</td>
+                                    </tr>';
+                }
+            }
+
+            $cuerpo .= '</tbody>
+                        </table>
+            
+                        <!-- Total -->
+                        <p style="margin-top: 20px; font-weight: bold;">Total: $' . number_format($monto, 2) . '</p>
+                    </div>
+            
+                    <!-- Línea divisoria -->
+                    <hr class="custom-hr">
+            
+                    <!-- Pie de página -->
+                    <div class="footer">
+                        <p>&copy; 2025 Representaciones Gueos LTDA. Todos los derechos reservados.</p>
+                    </div>
+                </div>
+            </body>
+            </html>';
 
             require 'Mailer.php';
             $mailer = new Mailer();

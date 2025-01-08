@@ -70,11 +70,137 @@ if (!empty($_POST)) {
 
                 $url = SITE_URL . 'activa_cliente.php?id=' . $idUsuario . '&token=' . $token;
                 $asunto = "Activar cuenta - Tienda online";
-                $cuerpo = "Estimado $nombres: <br> Para continuar con el proceso de registro es indispensable de clic en la siguiente liga <a href='$url'>Activar cuenta</a>";
+
+                $cuerpo = "";
+                $cuerpo .= '<!DOCTYPE html>
+                <html lang="es">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            margin: 0;
+                            padding: 0;
+                            background-color: #f9f9f9;
+                        }
+                
+                        .container {
+                            width: 100%;
+                            max-width: 600px;
+                            margin: 0 auto;
+                            background-color: #ffffff;
+                            padding: 20px;
+                            border-radius: 8px;
+                            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        }
+                
+                        .header {
+                            text-align: center;
+                            padding: 20px 0;
+                        }
+                
+                        .header img {
+                            max-width: 200px;
+                        }
+                
+                        .content {
+                            margin-top: 20px;
+                            font-size: 16px;
+                            color: #333;
+                        }
+                
+                        .content h4 {
+                            font-size: 22px;
+                            color: #333;
+                            text-align: center; 
+                        }
+                
+                        .content p {
+                            color: #555;
+                            font-size: 16px;
+                            line-height: 1.6;
+                        }
+                
+                        .content .reset-link {
+                            display: block;
+                            margin-top: 15px;
+                            padding: 10px;
+                            background-color: #007bff;
+                            color: #fff;
+                            text-align: center;
+                            text-decoration: none;
+                            font-weight: bold;
+                            border-radius: 5px;
+                        }
+                
+                        .footer {
+                            text-align: center;
+                            margin-top: 30px;
+                            font-size: 14px;
+                            color: #888;
+                        }
+                
+                        .footer p {
+                            margin: 5px 0;
+                        }
+                
+                        .custom-hr {
+                            border: 0;
+                            border-top: 2px solid #333;
+                            margin: 20px 0;
+                        }
+                
+                        /* Estilos para dispositivos móviles */
+                        @media screen and (max-width: 600px) {
+                            .container {
+                                padding: 15px;
+                            }
+                
+                            .header img {
+                                max-width: 150px;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <!-- Logo -->
+                        <div class="header">
+                            <img src="https://es.digitaltrends.com/wp-content/uploads/2023/12/google-chrome.jpeg?resize=1000%2C600&p=1" alt="Logo de la Tienda">
+                        </div>
+                
+                        <!-- Línea divisoria -->
+                        <hr class="custom-hr">
+                
+                        <!-- Contenido principal -->
+                        <div class="content">
+                            <h4>Activación de la cuenta</h4>
+                            <p>Estimado/a <strong>' . $nombres . '</strong>,</p>
+                            <p>¡Gracias por registrarte en la <strong>Tienda Representaciones Gueos</strong>.</p>
+                            <p>Para completar el proceso de registro y activar tu cuenta, por favor haz clic en el siguiente enlace:</p>
+                            <a href="' . $url . '" class="reset-link">Activar Cuenta</a>
+                            <p>Si tu no has iniciado ni completado el registro, por favor ignora este mensaje. Si tienes alguna duda o necesitas ayuda adicional, no dudes en contactarnos.</p>
+                            <p>¡Gracias por formar parte de nuestra comunidad!</p>
+                        </div>
+                
+                        <!-- Línea divisoria -->
+                        <hr class="custom-hr">
+                
+                        <!-- Pie de página -->
+                        <div class="footer">
+                            <p>&copy; 2025 Representaciones Gueos LTDA. Todos los derechos reservados.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>';
+
+
+
 
                 if ($mailer->enviarEmail($email, $asunto, $cuerpo)) {
                     echo "<script>
-                        alert('Para terminar el proceso de registro siga las instrucciones que le hemos enviado a la dirección de correo electrónico $email');
+                        alert('Para terminar el proceso de registro, siga las instrucciones que le hemos enviado a la dirección de correo electrónico $email');
                         window.location.href = 'login.php';
                       </script>";
                     exit;

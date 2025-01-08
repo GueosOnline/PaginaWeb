@@ -1,6 +1,6 @@
 <?php
 
-//Pantalla para modificar contraseña
+// Pantalla para modificar contraseña
 
 require 'config/config.php';
 require 'clases/clienteFunciones.php';
@@ -34,13 +34,20 @@ if (!empty($_POST)) {
     if (!validaPassword($password, $repassword)) {
         $errors[] = "Las contraseñas no coinciden";
     }
+
     if (empty($errors)) {
         $pass_hash = password_hash($password, PASSWORD_DEFAULT);
         if (actualizaPassword($user_id, $pass_hash, $con)) {
-            echo "Contraseña modificada.<br><a href='login.php'>Iniciar sesión</a>";
+            // Aquí agregamos el mensaje de éxito y la redirección usando JavaScript.
+            echo "<script>
+                    alert('Contraseña modificada correctamente.');
+                    setTimeout(function(){
+                        window.location.href = 'login.php'; // Redirige al login después de 3 segundos.
+                    }, 2000); 
+                  </script>";
             exit;
         } else {
-            $errors[] = "Error al modificar contraseña. Intentalo nuevamente.";
+            $errors[] = "Error al modificar contraseña. Inténtalo nuevamente.";
         }
     }
 }
@@ -54,7 +61,7 @@ if (!empty($_POST)) {
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tienda en linea</title>
+    <title>Tienda en línea</title>
 
     <link href="<?php echo SITE_URL; ?>css/bootstrap.min.css" rel="stylesheet">
     <link href="css/all.min.css" rel="stylesheet">
@@ -66,8 +73,8 @@ if (!empty($_POST)) {
     <?php include 'header.php'; ?>
 
     <!-- Contenido -->
-    <main class="form-login m-auto">
-        <h3>Cambiar contraseña</h3>
+    <main class="form-login m-auto mt-5">
+        <h3>Cambiar la contraseña</h3>
 
         <?php mostrarMensajes($errors); ?>
 
@@ -81,17 +88,14 @@ if (!empty($_POST)) {
                 <label for="password">Nueva contraseña</label>
             </div>
             <div class="form-floating">
-                <input type="password" class="form-control" id="repassword" name="repassword" placeholder="Confirmar contraseña" required>
-                <label for="repassword">Confirmar contraseña</label>
+                <input type="password" class="form-control" id="repassword" name="repassword" placeholder="Confirmar nueva contraseña" required>
+                <label for="repassword">Confirmar nueva contraseña</label>
             </div>
 
             <div class="d-grid gap-3 col-12">
                 <button type="submit" class="btn btn-primary">Continuar</button>
             </div>
 
-            <div class="col-12">
-                <a href="login.php">Iniciar sesión</a>
-            </div>
         </form>
     </main>
 

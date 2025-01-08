@@ -29,7 +29,7 @@ class Mailer
             $mail->Port       = MAIL_PORT;                     //Puerto TCP al que conectarse, si usa 587 agregar `SMTPSecure = PHPMailer :: ENCRYPTION_STARTTLS`
 
             //Correo emisor y nombre
-            $mail->setFrom(MAIL_USER, 'Tienda CDP');
+            $mail->setFrom(MAIL_USER, 'Representaciones Gueos');
             //Correo receptor y nombre
             $mail->addAddress($email);
 

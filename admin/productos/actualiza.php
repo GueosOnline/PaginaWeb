@@ -61,6 +61,9 @@ if ($stm->execute([$slug, $nombre, $descripcion, $precio, $descuento, $stock, $c
             mkdir($dir, 0777, true);
         }
 
+
+        //creacion de las otras imagenes y sus nombres unicos 
+
         foreach ($_FILES['otras_imagenes']['tmp_name'] as $key => $tmp_name) {
             $fileName = $_FILES['otras_imagenes']['name'][$key];
 
