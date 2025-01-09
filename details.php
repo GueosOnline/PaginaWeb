@@ -120,6 +120,7 @@ if ($sql->fetchColumn() > 0) {
                     <p class="lead"><?php echo $row['descripcion']; ?></p>
 
                     <div class="col-3 my-3">
+                        <label for="cantidad">Cantidad</label>
                         <input class="form-control" id="cantidad" name="cantidad" type="number" min="1" max="10" value="1">
                     </div>
 

@@ -41,7 +41,7 @@ if (!empty($_POST)) {
 
                 $url = SITE_URL . 'reset_password.php?id=' . $user_id . '&token=' . $token;
 
-                $asunto = "Recuperar contraseña - Tienda Representaciones Gueos";
+                $asunto = "Recuperar password - Tienda Representaciones Gueos";
 
                 $cuerpo = "";
                 $cuerpo .= '<!DOCTYPE html>
