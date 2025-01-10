@@ -4,6 +4,7 @@
 
 
 require 'config/config.php';
+require 'clases/clienteFunciones.php';
 
 $db = new Database();
 $con = $db->conectar();
@@ -25,7 +26,8 @@ if ($sql->fetchColumn() > 0) {
     $id = $row['id'];
     $descuento = $row['descuento'];
     $precio = $row['precio'];
-    $precio_desc = $precio - (($precio * $descuento) / 100);
+    $precioIva = redondearPrecio($precio * 1.19);
+    $precio_desc = redondearPrecio($precioIva - (($precioIva * $descuento) / 100));
     $dir_images = 'images/productos/' . $id . '/';
 
     $rutaImg = $dir_images . 'principal.jpg';
@@ -106,17 +108,22 @@ if ($sql->fetchColumn() > 0) {
                 <div class="col-md-7 order-md-2">
                     <h2><?php echo $row['nombre']; ?></h2>
 
-                    <?php if ($descuento > 0) { ?>
+                    <div class="row">
+                        <?php if ($descuento > 0) { ?>
+                            <p><del><?php echo MONEDA; ?> <?php echo number_format($precioIva, 0, '.', ','); ?></del></p>
 
-                        <p><del><?php echo MONEDA; ?> <?php echo number_format($precio, 2, '.', ','); ?></del></p>
-                        <h2><?php echo MONEDA; ?> <?php echo number_format($precio_desc, 2, '.', ','); ?> <small class=" text-success"><?php echo $descuento; ?>% descuento</small></h2>
+                            <div class="col-12">
+                                <h2 style="display: inline;"><?php echo MONEDA; ?> <?php echo number_format($precio_desc, 0, '.', ','); ?> <small class=" text-success"><?php echo $descuento; ?>% descuento</small></h2>
+                                <p class="text-muted" style="display: inline;">IVA Incluído</p>
+                            </div>
 
-                    <?php } else { ?>
-
-                        <h2><?php echo MONEDA . ' ' . number_format($precio, 2, '.', ','); ?></h2>
-
-                    <?php } ?>
-
+                        <?php } else { ?>
+                            <div class="col-12">
+                                <h2 style="display: inline;"><?php echo MONEDA . ' ' . number_format($precioIva, 0, '.', ','); ?></h2>
+                                <p class="text-muted" style="display: inline;">IVA Incluído</p>
+                            </div>
+                        <?php } ?>
+                    </div>
                     <p class="lead"><?php echo $row['descripcion']; ?></p>
 
                     <div class="col-3 my-3">
@@ -126,7 +133,7 @@ if ($sql->fetchColumn() > 0) {
 
                     <div class="d-grid gap-3 col-7">
                         <button class="btn btn-primary" type="button" onClick="comprarAhora(<?php echo $id; ?>, cantidad.value)">Comprar ahora</button>
-                        <button class="btn btn-outline-primary" type="button" onClick="addProducto(<?php echo $id; ?>, cantidad.value)">Agregar al carrito</button>
+                        <button class="btn btn-outline-primary" type="button" onClick="addProducto('<?php echo $id; ?>', cantidad.value)">Agregar al carrito</button>
                     </div>
                 </div>
             </div>

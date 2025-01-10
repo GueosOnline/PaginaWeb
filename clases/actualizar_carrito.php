@@ -3,6 +3,7 @@
 // Script para actualizar carrito de compas
 
 require '../config/config.php';
+require 'clienteFunciones.php';
 
 if (isset($_POST['action'])) {
     $action = $_POST['action'];
@@ -54,10 +55,11 @@ function agregar($id, $cantidad)
 
         $descuento = $producto['descuento'];
         $precio = $producto['precio'];
+        $precioIva = redondearPrecio($precio * 1.19);
         $stock = $producto['stock'];
 
         if ($stock >= $cantidad) {
-            $precio_desc = $precio - (($precio * $descuento) / 100);
+            $precio_desc = redondearPrecio($precioIva - (($precioIva * $descuento) / 100));
             return $cantidad * $precio_desc;
         }
     }

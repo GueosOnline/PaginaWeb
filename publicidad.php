@@ -13,7 +13,7 @@ $con = $db->conectar();
 
 
 /*Consulta para productos con descuento mas del 50%*/
-$sqldesc = "SELECT id, slug, nombre, precio, descuento FROM productos WHERE descuento >= 0";
+$sqldesc = "SELECT id, slug, nombre, precio, descuento FROM productos WHERE descuento >= 50";
 
 $querydesc = $con->prepare($sqldesc);
 $querydesc->execute();

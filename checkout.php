@@ -3,6 +3,7 @@
 //Pantalla para mostrar el listado de productos en el carrito
 
 require 'config/config.php';
+require 'clases/clienteFunciones.php';
 
 $productos = isset($_SESSION['carrito']['productos']) ? $_SESSION['carrito']['productos'] : null;
 
@@ -40,13 +41,21 @@ if ($productos != null) {
     <!-- Contenido -->
     <main class="flex-shrink-0">
         <div class="container">
+            <!-- Sección con borde alrededor -->
+            <div style="border: 2px solid #007bff; border-radius: 10px; padding: 20px; background-color: #f9f9f9;">
+                <h4><i class="fas fa-truck"></i>¡PARA TU TRANSPORTE!</h4>
+                <p>Los pedidos para Bogotá con un costo de 150.000 COP o mas tendrán envío <b>¡GRATIS!</b>. Para el transporte de pedidos por fuera de Bogotá el costo adicional equivale al mencionado por la transportadora.</p>
+            </div>
 
+            <!-- Tabla de productos en el carrito -->
             <div class="table-responsive">
                 <table class="table">
                     <thead>
                         <tr>
                             <th>Producto</th>
                             <th>Precio</th>
+                            <th>Descuento</th>
+                            <th>Precio Actual</th>
                             <th>Cantidad</th>
                             <th>Subtotal</th>
                             <th></th>
@@ -59,18 +68,22 @@ if ($productos != null) {
                         } else {
                             $total = 0;
                             foreach ($lista_carrito as $producto) {
-                                $_id = $producto['id'];
+                                $_id = (string)$producto['id'];
                                 $descuento = $producto['descuento'];
                                 $precio = $producto['precio'];
+                                $precioIva = redondearPrecio($precio * 1.19);
                                 $cantidad = $producto['cantidad'];
                                 $precio_desc = $precio - (($precio * $descuento) / 100);
-                                $subtotal = $cantidad * $precio_desc;
+                                $precio_descIva = redondearPrecio($precio_desc * 1.19);
+                                $subtotal = $cantidad * $precio_descIva;
                                 $total += $subtotal;
                         ?>
                                 <tr>
                                     <td><?php echo $producto['nombre']; ?></td>
-                                    <td><?php echo MONEDA . number_format($precio_desc, 2, '.', ','); ?></td>
-                                    <td><input type="number" id="cantidad_<?php echo $_id; ?>" min="1" max="10" step="1" value="<?php echo $cantidad; ?>" size="5" onchange="actualizaCantidad(this.value, <?php echo $_id; ?>)" /></td>
+                                    <td><?php echo MONEDA . number_format($precioIva, 2, '.', ','); ?></td>
+                                    <td><?php echo $descuento . " %" ?></td>
+                                    <td><?php echo MONEDA . number_format($precio_descIva, 2, '.', ','); ?></td>
+                                    <td><input type="number" id="cantidad_<?php echo $_id; ?>" min="1" max="10" step="1" value="<?php echo $cantidad; ?>" size="5" onchange="actualizaCantidad(this.value, '<?php echo $_id; ?>')" /></td>
 
                                     <td>
                                         <div id="subtotal_<?php echo $_id; ?>" name="subtotal[]"><?php echo MONEDA . number_format($subtotal, 2, '.', ','); ?></div>
@@ -80,9 +93,14 @@ if ($productos != null) {
                             <?php } ?>
 
                             <tr>
-                                <td colspan="3"></td>
-                                <td colspan="2">
-                                    <p class="h3" id="total"><?php echo MONEDA . number_format($total, 2, '.', ','); ?></p>
+                                <td colspan="1"></td>
+                                <td colspan="3">
+                                    <h4 style="color: #28A745;">Valor Total a Pagar</h4>
+                                </td>
+
+                                <td colspan="1"></td>
+                                <td>
+                                    <p class="h3" id="total" style="color: #28A745;"><?php echo MONEDA . number_format($total, 2, '.', ','); ?></p>
                                 </td>
                             </tr>
 
@@ -147,7 +165,6 @@ if ($productos != null) {
             formData.append('action', 'agregar');
             formData.append('id', id);
             formData.append('cantidad', cantidad);
-
             fetch(url, {
                     method: 'POST',
                     body: formData,
@@ -170,7 +187,7 @@ if ($productos != null) {
                         }).format(total)
                         document.getElementById("total").innerHTML = '<?php echo MONEDA; ?>' + total
                     } else {
-                        alert("No ay suficientes productos en el stock")
+                        alert("Lo sentimos.. En este momento, no hay suficientes existencias")
                         let inputCantidad = document.getElementById('cantidad_' + id);
                         inputCantidad.value = data.cantidadAnterior;
                     }

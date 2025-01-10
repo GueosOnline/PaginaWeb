@@ -1,7 +1,9 @@
 <?php
 
 require 'config/config.php';
+require 'clases/clienteFunciones.php';
 require_once 'config/database.php';
+
 
 $db = new Database();
 $con = $db->conectar();
@@ -69,10 +71,12 @@ if ($productos != null) {
                                         $_id = $producto['id'];
                                         $nombre = $producto['nombre'];
                                         $precio = $producto['precio'];
+                                        $precioIva = redondearPrecio($precio * 1.19);
                                         $descuento = $producto['descuento'];
                                         $cantidad = $producto['cantidad'];
                                         $precio_desc = $precio - (($precio * $descuento) / 100);
-                                        $subtotal = $cantidad * $precio_desc;
+                                        $precio_descIva = redondearPrecio($precio_desc * 1.19);
+                                        $subtotal = $cantidad * $precio_descIva;
                                         $total += $subtotal;
 
                                 ?>

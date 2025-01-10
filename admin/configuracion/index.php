@@ -41,12 +41,6 @@ require '../header.php';
                     <button class="nav-link" id="email-tab" data-bs-toggle="tab" data-bs-target="#email-tab-pane" type="button" role="tab" aria-controls="email-tab-pane" aria-selected="false">Correo electrónico</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="paypal-tab" data-bs-toggle="tab" data-bs-target="#paypal-tab-pane" type="button" role="tab" aria-controls="paypal-tab-pane" aria-selected="false">Paypal</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="mp-tab" data-bs-toggle="tab" data-bs-target="#mp-tab-pane" type="button" role="tab" aria-controls="mp-tab-pane" aria-selected="false">Mercado Pago</button>
-                </li>
-                <li class="nav-item" role="presentation">
                     <button class="nav-link" id="wp-tab" data-bs-toggle="tab" data-bs-target="#wp-tab-pane" type="button" role="tab" aria-controls="wp-tab-pane" aria-selected="false">Wompi</button>
                 </li>
             </ul>
@@ -98,37 +92,6 @@ require '../header.php';
                         <div class="col-6">
                             <label for="password">Contraseña</label>
                             <input class="form-control" type="password" name="password" id="password" value="<?php echo $config['correo_password']; ?>">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab Paypal -->
-                <div class="tab-pane fade" id="paypal-tab-pane" role="tabpanel" aria-labelledby="paypal-tab" tabindex="0">
-                    <div class="row mb-3">
-                        <div class="col-9">
-                            <label for="paypal_cliente">Cliente ID</label>
-                            <input class="form-control" type="text" name="paypal_cliente" id="paypal_cliente" value="<?php echo $config['paypal_cliente']; ?>">
-                        </div>
-
-                        <div class="col-3">
-                            <label for="paypal_moneda">Moneda</label>
-                            <input class="form-control" type="text" name="paypal_moneda" id="paypal_moneda" value="<?php echo $config['paypal_moneda']; ?>">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tab MercadoPago -->
-                <div class="tab-pane fade" id="mp-tab-pane" role="tabpanel" aria-labelledby="mp-tab" tabindex="0">
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label for="mp_token">Token</label>
-                            <input class="form-control" type="text" name="mp_token" id="mp_token" value="<?php echo $config['mp_token']; ?>">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <label for="mp_clave">Clave pública</label>
-                            <input class="form-control" type="text" name="mp_clave" id="mp_clave" value="<?php echo $config['mp_clave']; ?>">
                         </div>
                     </div>
                 </div>

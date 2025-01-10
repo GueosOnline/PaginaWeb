@@ -12,7 +12,7 @@ if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'admin') {
 $db = new Database();
 $con = $db->conectar();
 
-$sql = "SELECT id, codigo,nombre, descripcion, precio, descuento, stock, id_categoria FROM productos WHERE activo = 1";
+$sql = "SELECT id,nombre, descripcion, precio, descuento, stock, id_categoria FROM productos WHERE activo = 1";
 $resultado = $con->query($sql);
 $productos = $resultado->fetchAll(PDO::FETCH_ASSOC);
 
@@ -30,7 +30,7 @@ require '../header.php';
         <table id="datatablesSimple" class="table table-bordered table-sm">
             <thead>
                 <tr>
-                    <th>Codigo</th>
+                    <th>Id</th>
                     <th>Nombre</th>
                     <th>Precio</th>
                     <th>Stock</th>
@@ -42,7 +42,7 @@ require '../header.php';
             <tbody>
                 <?php foreach ($productos as $producto) { ?>
                     <tr>
-                        <td><?php echo $producto['codigo']; ?></td>
+                        <td><?php echo $producto['id']; ?></td>
                         <td><?php echo htmlspecialchars($producto['nombre'], ENT_QUOTES); ?></td>
                         <td><?php echo $producto['precio']; ?></td>
                         <td><?php echo $producto['stock']; ?></td>

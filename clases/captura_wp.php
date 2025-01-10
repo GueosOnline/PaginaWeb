@@ -11,6 +11,7 @@ $status = isset($_GET['status']) ? $_GET['status'] : '';
 
 if ($idTransaccion != '') {
 
+    date_default_timezone_set('America/Bogota'); //comprobar...
     $fecha = date("Y-m-d H:i:s");
     $monto = isset($_SESSION['carrito']['total']) ? $_SESSION['carrito']['total'] : 0;
     $idCliente = $_SESSION['user_cliente'];

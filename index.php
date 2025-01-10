@@ -1,6 +1,7 @@
 <?php
 // Inicializamos la base de datos
 require 'config/config.php';
+require 'clases/clienteFunciones.php';
 
 $db = new Database();
 $con = $db->conectar();
@@ -22,12 +23,13 @@ $orders = [
 $order = $orders[$orden] ?? '';
 
 // Preparamos la consulta SQL
-$sql = "SELECT id, slug, nombre, precio FROM productos WHERE activo = 1";
+$sql = "SELECT id, slug, nombre, precio, descuento FROM productos WHERE activo = 1";
 $params = [];
 
 // Filtro de búsqueda
 if (!empty($buscar)) {
-    $sql .= " AND (nombre LIKE ? OR descripcion LIKE ?)";
+    $sql .= " AND (id LIKE ? OR nombre LIKE ? OR descripcion LIKE ? )";
+    $params[] = "%$buscar%";
     $params[] = "%$buscar%";
     $params[] = "%$buscar%";
 }
@@ -140,6 +142,10 @@ function getSubcategorias($con, $idCategoria)
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <link href="css/all.min.css" rel="stylesheet">
     <link href="css/estilos.css" rel="stylesheet">
+
+    <style>
+
+    </style>
 </head>
 
 <body class="d-flex flex-column h-100">
@@ -239,6 +245,11 @@ function getSubcategorias($con, $idCategoria)
 
                                     <?php
                                     $id = $row['id'];
+                                    $descuento = $row['descuento'];
+                                    $precio = ($row['precio']);
+                                    $precioIva = redondearPrecio($precio * 1.19);
+                                    $precio_desc = $precio - (($precio * $descuento) / 100);
+                                    $precio_descIva = redondearPrecio($precio_desc * 1.19);
                                     $imagen = "images/productos/$id/principal.jpg";
 
                                     if (!file_exists($imagen)) {
@@ -249,16 +260,32 @@ function getSubcategorias($con, $idCategoria)
                                         <img src="<?php echo $imagen; ?>" class="img-thumbnail" style="max-height: 300px">
                                     </a>
 
-                                    <div class="card-body d-flex flex-column">
-                                        <div class="d-flex flex-row">
-                                            <h5 class="mb-1 me-1"><?php echo MONEDA . ' ' . number_format($row['precio'], 2, '.', ','); ?></h5>
+                                    <div class="card-body ">
+                                        <div class="row">
+                                            <?php if ($descuento > 0) { ?>
+                                                <div class="col-12">
+                                                    <h3 class="precio_desc" style=" display: inline-block; margin-bottom: -8px;"> <?php echo MONEDA . number_format($precio_descIva, 0, '.', ','); ?> </h3>
+                                                    <h4 class="descuento" style="color: #28A745; display: inline-block; margin-bottom: -8px;"><b> <?php echo $descuento; ?>% OFF</b></h4>
+                                                    <p class="text-muted" style="margin-top: -5px;"><small>IVA Incluído</small></p>
+                                                </div>
+
+                                                <div class="col-12">
+                                                    <h5 class="precio" style="color: #FF0000; display: inline-block;"><del><?php echo  MONEDA . number_format($precioIva, 0, '.', '.'); ?></del></h5>
+                                                </div>
+
+                                            <?php } else { ?>
+                                                <div class="col-12">
+                                                    <h3 style="margin-bottom: -8px;"><?php echo MONEDA . number_format($precioIva, 0, '.', '.'); ?> </h3>
+                                                    <p class="text-muted" style="margin-top: -5px;"><small>IVA Incluído</small></p>
+                                                </div>
+                                            <?php } ?>
                                         </div>
-                                        <p class="card-text"><?php echo $row['nombre']; ?></p>
+                                        <p class=" card-text"><?php echo $row['nombre']; ?></p>
                                     </div>
 
                                     <div class="card-footer bg-transparent">
                                         <div class="d-flex justify-content-between align-items-center">
-                                            <a class="btn btn-success" onClick="addProducto(<?php echo $row['id']; ?>)">Agregar</a>
+                                            <a class="btn btn-success" onClick="addProducto('<?php echo $row['id']; ?>')">Agregar</a>
                                             <div class="btn-group">
                                                 <a href="details/<?php echo $row['slug']; ?>" class="btn btn-primary">Detalles</a>
                                             </div>
@@ -301,7 +328,7 @@ function getSubcategorias($con, $idCategoria)
             var url = 'clases/carrito.php';
             var formData = new FormData();
             formData.append('id', id);
-
+            console.log(id)
             fetch(url, {
                     method: 'POST',
                     body: formData,

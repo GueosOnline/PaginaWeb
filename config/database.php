@@ -2,8 +2,6 @@
 
 /**
  * Clase para conexión a base de datos
- * Autor: Marco Robles
- * Web: https://github.com/mroblesdev
  */
 
 class Database

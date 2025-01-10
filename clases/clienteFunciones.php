@@ -2,6 +2,24 @@
 
 //Funciones de utilidad para usuarios
 
+function redondearPrecio($precio)
+{
+    // Extraemos la parte de los cientos y las unidades
+    $centenas = floor($precio / 100) * 100;  // La parte de los cientos
+    $decenas = $precio % 100;  // Lo que sobra (decenas y unidades)
+
+    // Redondeamos las decenas según el criterio
+    if ($decenas <= 24) {
+        return $centenas; // Redondear hacia abajo
+    } elseif ($decenas <= 74) {
+        return $centenas + 50; // Redondear hacia 50
+    } else {
+        return $centenas + 100; // Redondear hacia arriba
+    }
+}
+
+
+
 function esNulo(array $parametos)
 {
     foreach ($parametos as $parameto) {
