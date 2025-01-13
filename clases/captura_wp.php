@@ -2,6 +2,7 @@
 
 //Script para capturar detalles de pago de Wompi
 require '../config/config.php';
+require 'clienteFunciones.php';
 
 $db = new Database();
 $con = $db->conectar();
@@ -13,7 +14,7 @@ if ($idTransaccion != '') {
 
     date_default_timezone_set('America/Bogota'); //comprobar...
     $fecha = date("Y-m-d H:i:s");
-    $monto = isset($_SESSION['carrito']['total']) ? $_SESSION['carrito']['total'] : 0;
+    $total = isset($_SESSION['carrito']['total']) ? $_SESSION['carrito']['total'] : 0;
     $idCliente = $_SESSION['user_cliente'];
     $sqlProd = $con->prepare("SELECT email FROM clientes WHERE id=? AND estatus=1");
     $sqlProd->execute([$idCliente]);
@@ -22,7 +23,7 @@ if ($idTransaccion != '') {
     $email = $row_cliente['email'];
 
     $comando = $con->prepare("INSERT INTO compra (fecha, status, email, id_cliente, total, id_transaccion, medio_pago) VALUES(?,?,?,?,?,?,?)");
-    $comando->execute([$fecha, $status, $email, $idCliente, $monto, $idTransaccion, 'Wompi']);
+    $comando->execute([$fecha, $status, $email, $idCliente, $total, $idTransaccion, 'Wompi']);
     $id = $con->lastInsertId();
 
     if ($id > 0) {
@@ -38,9 +39,10 @@ if ($idTransaccion != '') {
                 $precio = $row_prod['precio'];
                 $descuento = $row_prod['descuento'];
                 $precio_desc = $precio - (($precio * $descuento) / 100);
+                $precio_descIva = redondearPrecio($precio_desc * 1.19);
 
                 $sql = $con->prepare("INSERT INTO detalle_compra (id_compra, id_producto, nombre, cantidad, precio) VALUES(?,?,?,?,?)");
-                if ($sql->execute([$id, $row_prod['id'], $row_prod['nombre'], $cantidad, $precio_desc])) {
+                if ($sql->execute([$id, $row_prod['id'], $row_prod['nombre'], $cantidad, $precio_descIva])) {
                     restarStock($row_prod['id'], $cantidad, $con);
                 }
             }
@@ -167,20 +169,21 @@ if ($idTransaccion != '') {
                     <hr class="custom-hr">
             
                     <!-- Contenido principal -->
-                    <div class="content">
-                        <h4 style="text-center">¡Gracias por tu compra!</h4>
-                        <p>Queremos agradecerte por realizar tu compra en <strong>Representacionnes Gueos</strong>.</p>
-                        <p>El ID de tu compra es: <span class="order-id">' . $idTransaccion . '</span></p>
-                        <p>Tu pedido está siendo procesado y recibirás una notificación cuando se haya enviado.</p>
+                   <div class="content">
+                        <h4 style="text-center">¡Gracias por su compra!</h4>
+                        <p>Le agradecemos por realizar su compra en <strong>Representaciones Gueos</strong>.</p>
+                        <p>El ID de su compra es: <span class="order-id">' . $idTransaccion . '</span></p>
+                        <p>Su pedido está siendo procesado y recibirá una notificación cuando haya sido enviado.</p>
                         <p>Detalles de la compra:</p>
-            
+
                         <!-- Detalles del pedido -->
                         <table>
                             <thead>
                                 <tr>
                                     <th>Cantidad</th>
                                     <th>Producto</th>
-                                    <th>Importe</th>
+                                    <th>Descuento</th>
+                                    <th>SubTotal</th>
                                 </tr>
                             </thead>
                             <tbody>';
@@ -189,15 +192,19 @@ if ($idTransaccion != '') {
             if (isset($_SESSION['carrito']['productos'])) {
                 $productos = $_SESSION['carrito']['productos'];
                 foreach ($productos as $clave => $cantidad) {
-                    $sqlProd = $con->prepare("SELECT nombre, precio FROM productos WHERE id=? AND activo=1");
+                    $sqlProd = $con->prepare("SELECT nombre, precio, descuento FROM productos WHERE id=? AND activo=1");
                     $sqlProd->execute([$clave]);
                     $row_prod = $sqlProd->fetch(PDO::FETCH_ASSOC);
-
-                    $importe = $cantidad * $row_prod['precio'];
+                    $precio = $row_prod['precio'];
+                    $descuento = $row_prod['descuento'];
+                    $precio_desc = $precio - (($precio * $descuento) / 100);
+                    $precio_descIva = redondearPrecio($precio_desc * 1.19);
+                    $subTotal = $cantidad * $precio_descIva;
                     $cuerpo .= '<tr>
                                         <td>' . $cantidad . '</td>
                                         <td>' . $row_prod['nombre'] . '</td>
-                                        <td>$' . number_format($importe, 2) . '</td>
+                                        <td>' . $descuento . "%" . '</td>
+                                        <td>$' . number_format($subTotal, 0, '.', ',') . '</td>
                                     </tr>';
                 }
             }
@@ -206,7 +213,7 @@ if ($idTransaccion != '') {
                         </table>
             
                         <!-- Total -->
-                        <p style="margin-top: 20px; font-weight: bold;">Total: $' . number_format($monto, 2) . '</p>
+                        <p style="margin-top: 20px; font-weight: bold;">Total: $' . number_format($total, 0, '.', ',') . '</p>
                     </div>
             
                     <!-- Línea divisoria -->
@@ -214,7 +221,7 @@ if ($idTransaccion != '') {
             
                     <!-- Pie de página -->
                     <div class="footer">
-                        <p>&copy; 2025 Representaciones Gueos LTDA. Todos los derechos reservados.</p>
+                        <p>&copy; 2025 Representaciones Gueos Ltda. Todos los derechos reservados.</p>
                     </div>
                 </div>
             </body>
@@ -222,7 +229,18 @@ if ($idTransaccion != '') {
 
             require 'Mailer.php';
             $mailer = new Mailer();
-            $mailer->enviarEmail($email, $asunto, $cuerpo);
+
+            $asuntoCopia = "Se ha realizado una VENTA - Tienda Gueos";
+            $cuerpoCopia = $cuerpo;
+            $emailVentas = MAIL_USER;
+
+            $mailer->enviarEmail($email, $asunto, $cuerpo, $emailVentas, $asuntoCopia, $cuerpoCopia);
+
+
+            #--------------------------------------------------------------------
+            # Envio de correo Electronico a la copia (Administrador)
+            #--------------------------------------------------------------------
+
         }
 
         unset($_SESSION['carrito']);

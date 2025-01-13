@@ -65,7 +65,7 @@ $sqlDetalle->execute([$idCompra]);
                         <div class="card-body">
                             <p><strong>Fecha: </strong><?php echo $fecha; ?></p>
                             <p><strong>Orden: </strong><?php echo $rowCompra['id_transaccion']; ?></p>
-                            <p><strong>Total: </strong><?php echo MONEDA . ' ' . number_format($rowCompra['total'], 2, '.', ','); ?></p>
+                            <p><strong>Total: </strong><?php echo MONEDA . ' ' . number_format($rowCompra['total'], 2, ',', '.'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -92,9 +92,9 @@ $sqlDetalle->execute([$idCompra]);
                                 ?>
                                     <tr>
                                         <td><?php echo $row['nombre']; ?></td>
-                                        <td><?php echo MONEDA . ' ' . number_format($precio, 2, '.', ','); ?></td>
-                                        <td><?php echo $cantidad; ?></td>
-                                        <td><?php echo MONEDA . ' ' . number_format($subtotal, 2, '.', ','); ?></td>
+                                        <td><?php echo MONEDA . ' ' . number_format($precio, 2, ',', '.'); ?></td>
+                                        <td class="text-center"><?php echo $cantidad; ?></td>
+                                        <td><?php echo MONEDA . ' ' . number_format($subtotal, 2, ',', '.'); ?></td>
                                     </tr>
                                 <?php } ?>
                             </tbody>

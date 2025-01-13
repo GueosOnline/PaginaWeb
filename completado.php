@@ -64,31 +64,31 @@ if ($id_transaccion == '') {
 
             <?php } else { ?>
 
-                <div class="row">
-                    <div class="col">
-                        <b>ID de compra:</b> <?php echo $id_transaccion; ?><br>
+                <div class="row justify-content-center">
+                    <div class="col-md-8 mb-4">
+                        <b>Referencia de compra:</b> <?php echo $id_transaccion; ?><br>
                         <b>Fecha de compra:</b> <?php echo $row['fecha']; ?><br>
-                        <b>Total:</b> <?php echo $row['total']; ?><br>
+                        <b>Total:</b> <?php echo number_format($row['total'], 2, ',', '.'); ?><br>
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-6 col-sm-12">
+                <div class="row justify-content-center">
+                    <div class="col-md-8 col-sm-12">
                         <table class="table">
                             <thead>
                                 <tr>
                                     <th>Cantidad</th>
                                     <th>Producto</th>
-                                    <th>Importe</th>
+                                    <th>Valor</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php while ($row_det = $sqlDet->fetch(PDO::FETCH_ASSOC)) {
-                                    $importe =  $row_det['cantidad'] * $row_det['precio']; ?>
+                                    $subtotal = number_format($row_det['cantidad'] * $row_det['precio'], 0, ',', '.'); ?>
                                     <tr>
                                         <td><?php echo $row_det['cantidad']; ?></td>
                                         <td><?php echo $row_det['nombre']; ?></td>
-                                        <td><?php echo $importe; ?></td>
+                                        <td><?php echo $subtotal; ?></td>
                                     </tr>
                                 <?php } ?>
                             </tbody>
