@@ -10,6 +10,10 @@ $con = $db->conectar();
 $idTransaccion = isset($_GET['id']) ? $_GET['id'] : '';
 $status = isset($_GET['status']) ? $_GET['status'] : '';
 
+$envioSeleccionado = isset($_SESSION['envioSeleccionado']) ? $_SESSION['envioSeleccionado'] : '';
+$envioCosto = isset($_SESSION['envioCosto']) ? $_SESSION['envioCosto'] : 0;
+
+
 if ($idTransaccion != '') {
 
     date_default_timezone_set('America/Bogota'); //comprobar...
@@ -22,8 +26,10 @@ if ($idTransaccion != '') {
 
     $email = $row_cliente['email'];
 
-    $comando = $con->prepare("INSERT INTO compra (fecha, status, email, id_cliente, total, id_transaccion, medio_pago) VALUES(?,?,?,?,?,?,?)");
-    $comando->execute([$fecha, $status, $email, $idCliente, $total, $idTransaccion, 'Wompi']);
+    // Agregar columnas en la tabla 'compra' para el envío
+    $comando = $con->prepare("INSERT INTO compra (fecha, status, email, id_cliente, total, id_transaccion, medio_pago, metodo_envio, costo_envio) VALUES(?,?,?,?,?,?,?,?,?)");
+    $comando->execute([$fecha, $status, $email, $idCliente, $total, $idTransaccion, 'Wompi', $envioSeleccionado, $envioCosto]);
+
     $id = $con->lastInsertId();
 
     if ($id > 0) {

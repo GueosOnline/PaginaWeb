@@ -41,11 +41,6 @@ if ($productos != null) {
     <!-- Contenido -->
     <main class="flex-shrink-0">
         <div class="container">
-            <!-- Sección con borde alrededor -->
-            <div style="border: 2px solid #007bff; border-radius: 10px; padding: 20px; background-color: #f9f9f9;">
-                <h4><i class="fas fa-truck"></i>¡PARA TU TRANSPORTE!</h4>
-                <p>Los pedidos para Bogotá con un costo de 150.000 COP o mas tendrán envío <b>¡GRATIS!</b>. Para el transporte de pedidos por fuera de Bogotá el costo adicional equivale al mencionado por la transportadora.</p>
-            </div>
 
             <!-- Tabla de productos en el carrito -->
             <div class="table-responsive">
@@ -95,12 +90,12 @@ if ($productos != null) {
                             <tr>
                                 <td colspan="1"></td>
                                 <td colspan="3">
-                                    <h4 style="color: #28A745;">Valor Total a Pagar</h4>
+                                    <h4 style="color:#008f39;">Valor Total a Pagar</h4>
                                 </td>
 
                                 <td colspan="1"></td>
                                 <td>
-                                    <p class="h3" id="total" style="color: #28A745;"><?php echo MONEDA . number_format($total, 2, '.', ','); ?></p>
+                                    <p class="h3" id="total" style="color: #008f39;"><?php echo MONEDA . number_format($total, 2, '.', ','); ?></p>
                                 </td>
                             </tr>
 

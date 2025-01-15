@@ -1,6 +1,7 @@
 <?php
 
 //Pantalla para registro de cliente
+//Pantalla para registro de cliente
 
 require 'config/config.php';
 require 'clases/clienteFunciones.php';
@@ -8,6 +9,8 @@ require 'clases/clienteFunciones.php';
 $db = new Database();
 $con = $db->conectar();
 
+$departamentos = $con->query("SELECT id, departamento FROM departamentos")->fetchAll(PDO::FETCH_ASSOC);
+$ciudades = $con->query("SELECT id, ciudad FROM ciudades")->fetchAll(PDO::FETCH_ASSOC);
 $errors = [];
 
 if (!empty($_POST)) {
@@ -20,6 +23,9 @@ if (!empty($_POST)) {
     $usuario = trim($_POST['usuario']);
     $password = trim($_POST['password']);
     $repassword = trim($_POST['repassword']);
+    $departamento = $_POST['departamento']; // Este es el nombre del departamento
+    $ciudad = $_POST['ciudad']; // Este es el nombre del departament
+    $direccion = trim($_POST['direccion']);
 
 
     $ip = $_SERVER['REMOTE_ADDR'];
@@ -56,7 +62,7 @@ if (!empty($_POST)) {
 
     if (empty($errors)) {
 
-        $id = registraCliente([$nombres, $apellidos, $email, $telefono, $cedula], $con);
+        $id = registraCliente([$nombres, $apellidos, $email, $telefono, $cedula, $departamento, $ciudad, $direccion], $con);
 
         if ($id > 0) {
 
@@ -267,7 +273,7 @@ if (!empty($_POST)) {
                         <span id="validaEmail" class="text-danger"></span>
                     </div>
                     <div class="col-md-3">
-                        <label for="telefono"><span class="text-danger">*</span> Telefono</label>
+                        <label for="telefono"><span class="text-danger">*</span>Celular</label>
                         <input type="tel" name="telefono" id="telefono" class="form-control" value="<?php echo isset($_POST['telefono']) ? $_POST['telefono'] : ''; ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '');" pattern="^[1-9]{1}[0-9]{9}$" title="No es un numero valido. El telefono debe tener 10 dígitos y no comenzar con 0." required>
                     </div>
                 </div>
@@ -296,6 +302,37 @@ if (!empty($_POST)) {
                     </div>
                 </div>
 
+
+                <!-- Select para Departamento -->
+                <div class="row w-100 justify-content-center">
+                    <div class="col-md-3">
+                        <label for="departamento" class="form-label"><span class="text-danger">*</span>Departamento</label>
+                        <select class="form-select" id="departamento" name="departamento" onchange="setDepartamentoNombre()" required>
+                            <option value="">Selecciona un Departamento</option>
+                            <?php foreach ($departamentos as $departamento) { ?>
+                                <option value="<?php echo $departamento['departamento']; ?>"><?php echo $departamento['departamento']; ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+
+                    <!-- Select para Ciudad (vacío inicialmente) -->
+                    <div class="col-md-3">
+                        <label for="ciudad" class="form-label"><span class="text-danger">*</span>Ciudad / Sector</label>
+                        <select class="form-select" id="ciudad" name="ciudad" required>
+                            <option value="">Selecciona una Ciudad</option>
+                            <?php foreach ($ciudades as $ciudad) { ?>
+                                <option value="<?php echo $ciudad['ciudad']; ?>"><?php echo $ciudad['ciudad']; ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row w-100 justify-content-center">
+                    <div class="col-md-3">
+                        <label for="direccion"><span class="text-danger">*</span> Direccion</label>
+                        <input type="direccion" name="direccion" id="direccion" class="form-control" required>
+                    </div>
+                </div>
                 <div class="col-md-3 text-center">
                     <i><b>Nota:</b> Los campos con asterisco son obligatorios</i>
                     <hr>
